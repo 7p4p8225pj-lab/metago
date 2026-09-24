@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#11152d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Мозгокрут">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <title>Мозгокрут — тренируй мозг</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #11152d;
+      --panel: rgba(31, 38, 76, .88);
+      --text: #f7f7ff;
+      --muted: #b9c1e8;
+      --pink: #ff5cbb;
+      --blue: #57c7ff;
+      --yellow: #ffe369;
+      --green: #5df2b1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: ui-rounded, "Trebuchet MS", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse at 15% 15%, #6336a8 0, transparent 35%),
+        radial-gradient(ellipse at 85% 80%, #075c91 0, transparent 38%),
+        linear-gradient(135deg, #101329, #171b3b 55%, #10152b);
+      overflow-x: hidden;
+    }
+    body::before, body::after {
+      content: "";
+      position: fixed;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: .22;
+      pointer-events: none;
+      animation: float 9s ease-in-out infinite alternate;
+    }
+    body::before { background: #ff43bd; top: 10%; right: -100px; }
+    body::after { background: #28bfff; bottom: 0; left: -100px; animation-delay: -4s; }
+    @keyframes float { to { transform: translate(25px, -30px) scale(1.15); } }
+    #app { position: relative; z-index: 1; width: min(940px, 100%); margin: auto; padding: 22px 18px 50px; }
+    button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+    .brand { font-weight: 1000; font-size: 1.16rem; letter-spacing: .02em; }
+    .brand span { color: var(--yellow); }
+    .small-btn, .primary, .secondary, .answer, .tile {
+      border: 0;
+      transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+    }
+    .small-btn:hover, .primary:hover, .secondary:hover, .answer:hover, .tile:hover { transform: translateY(-2px); filter: brightness(1.12); }
+    .small-btn { background: #ffffff18; padding: 10px 14px; border-radius: 14px; border: 1px solid #ffffff25; }
+    .hero { text-align: center; padding: 25px 12px 17px; animation: appear .45s ease both; }
+    @keyframes appear { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    h1 { font-size: clamp(2.4rem, 9vw, 4.5rem); line-height: 1; margin: 8px 0 14px; }
+    .rainbow { background: linear-gradient(90deg, #6be5ff, #ff78cc, #ffe369); color: transparent; background-clip: text; }
+    .subtitle { color: var(--muted); line-height: 1.55; max-width: 620px; margin: auto; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid #ffffff20;
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 18px 50px #03061655;
+      backdrop-filter: blur(12px);
+      animation: appear .35s ease both;
+    }
+    .section-title { margin: 22px 0 12px; font-size: 1.12rem; }
+    .levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .level {
+      min-height: 92px; border: 1px solid #ffffff24; border-radius: 18px;
+      background: linear-gradient(145deg, #3d447b, #24294f);
+      font-weight: 850; font-size: 1.08rem;
+    }
+    .level small { display: block; color: var(--muted); margin-top: 6px; font-size: .74rem; }
+    .level.locked { opacity: .44; cursor: not-allowed; filter: grayscale(.6); }
+    .primary, .secondary { border-radius: 16px; padding: 14px 20px; font-weight: 900; }    .primary { color: #17142c; background: linear-gradient(100deg, var(--yellow), #ff9b70); box-shadow: 0 8px 24px #ff9c4450; }
+    .secondary { background: linear-gradient(110deg, #e549b2, #745bff); box-shadow: 0 8px 24px #a13edb45; }
+    .bonus-wrap { text-align: center; margin-top: 20px; }
+    .bonus-wrap p { color: var(--muted); font-size: .9rem; margin: 9px 0 0; }
+    .game-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .game-head h2 { margin: 0; font-size: clamp(1.25rem, 5vw, 1.8rem); }
+    .pill { border-radius: 99px; padding: 8px 12px; background: #ffffff16; color: var(--yellow); font-weight: 800; white-space: nowrap; }
+    .progress { height: 9px; background: #ffffff18; border-radius: 99px; overflow: hidden; margin: 0 0 20px; }
+    .progress > i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--pink)); transition: width .35s ease; }
+    .instructions { color: var(--muted); text-align: center; margin: 8px 0 18px; }
+    .center { text-align: center; }
+    .simon { display: grid; grid-template-columns: repeat(3, minmax(70px, 105px)); gap: 12px; justify-content: center; padding: 10px 0; }
+    .tile { aspect-ratio: 1; border-radius: 23px; border: 2px solid #ffffff32; box-shadow: inset 0 0 20px #ffffff18, 0 8px 16px #0003; }
+    .tile.active { transform: scale(1.08); filter: brightness(1.7); box-shadow: 0 0 30px currentColor; }
+    .number { font-size: clamp(2.6rem, 13vw, 5rem); font-weight: 1000; color: var(--yellow); text-shadow: 0 0 24px #ffe36966; padding: 10px; }
+    .answers { display: flex; flex-wrap: wrap; gap: 11px; justify-content: center; margin: 20px 0 5px; }
+    .answer { min-width: 74px; padding: 13px 18px; background: linear-gradient(140deg, #404987, #292f60); border: 1px solid #ffffff28; border-radius: 15px; font-size: 1.1rem; font-weight: 850; }
+    .memory-grid { display: grid; grid-template-columns: repeat(3, minmax(60px, 86px)); gap: 9px; justify-content: center; margin: 12px auto; }
+    .memory-cell { aspect-ratio: 1; display: grid; place-items: center; border-radius: 16px; background: linear-gradient(145deg, #404883, #292f60); font-size: 2rem; border: 1px solid #ffffff25; }
+    .memory-cell.hidden { color: transparent; background: #ffffff13; }
+    .logic-grid { display: grid; grid-template-columns: repeat(3, 64px); gap: 7px; justify-content: center; margin: 18px auto; }
+    .logic-cell { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 15px; background: linear-gradient(145deg, #454c8c, #282e5e); font-size: 1.8rem; }
+    .logic-cell.missing { color: var(--yellow); border: 2px dashed var(--yellow); }
+    .status { min-height: 27px; text-align: center; color: var(--muted); margin: 12px 0; }
+    .win { text-align: center; padding: 22px 10px; }
+    .win .emoji { font-size: 3.6rem; animation: pop .55s ease both; }
+    @keyframes pop { 50% { transform: scale(1.3) rotate(8deg); } }
+    .win h2 { margin: 8px 0; font-size: 1.8rem; }
+    .achievements { display: grid; gap: 10px; }
+    .achievement { display: flex; align-items: center; gap: 13px; padding: 13px; border-radius: 15px; background: #ffffff0e; }
+    .achievement .badge { font-size: 1.8rem; }
+    .achievement.locked { opacity: .48; }
+    .achievement small { display: block; color: var(--muted); margin-top: 3px; }
+    .congrats { text-align: center; padding: 26px 12px 30px; }
+    .congrats h1 { font-size: clamp(2rem, 8vw, 3.8rem); }
+    .code { display: inline-block; margin: 13px auto; padding: 14px 20px; border: 2px dashed var(--yellow); border-radius: 17px; background: #ffdf451c; color: var(--yellow); font-size: clamp(1.2rem, 6vw, 2rem); font-weight: 1000; letter-spacing: .06em; }
+    .row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
+    .hint { color: var(--muted); font-size: .9rem; }
+    @media (max-width: 560px) {
+      #app { padding: 15px 13px 35px; }
+      .panel { padding: 17px 13px; border-radius: 20px; }
+      .levels { gap: 7px; }      .level { min-height: 75px; font-size: .95rem; border-radius: 14px; }
+      .level small { font-size: .65rem; }
+      .tile { border-radius: 17px; }
+      .logic-grid { grid-template-columns: repeat(3, 56px); }
+      .logic-cell { width: 56px; height: 56px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    const app = document.getElementById("app");
+    const games = ["Саймон говорит", "Числовой шифр", "Фото-память", "Фигурная логика"];
+    const colors = ["#ff5cbb", "#57c7ff", "#ffe369", "#5df2b1", "#a58bff", "#ff8c55"];
+    const icons = ["🍋", "🚀", "🐸", "🎈", "🌙", "🍓", "🧩", "⭐", "🐳"];
+    const symbols = ["🔴", "🔺", "🟦", "⭐"];
+    const saved = JSON.parse(localStorage.getItem("mozgame") || "{}");
+    const data = {
+      unlocked: saved.unlocked || 1,
+      levels: saved.levels || [],
+      bonus: saved.bonus || false,
+      runs: saved.runs || 0
+    };
+    let run = null;
+    let gameData = {};
+
+    function save() {
+      localStorage.setItem("mozgame", JSON.stringify(data));
+    }
+    function top() {
+      return `<div class="top"><div class="brand">🧠 <span>МОЗГОКРУТ</span></div><button class="small-btn" onclick="showHome()">⌂ Меню</button></div>`;
+    }
+    function showHome() {
+      run = null;
+      const levelCards = Array.from({length: 5}, (_, i) => {
+        const n = i + 1, locked = n > data.unlocked;
+        return `<button class="level ${locked ? "locked" : ""}" ${locked ? "disabled" : `onclick="startRun('level',${n})"`}>
+          ${locked ? "🔒" : ["🌱","⚡","🔥","💎","👑"][i]} Уровень ${n}
+          <small>${locked ? "Сначала пройди предыдущий" : "4 мини-игры"}</small>
+        </button>`;
+      }).join("");
+      app.innerHTML = `${top()}
+        <section class="hero"><div style="font-size:2.3rem">✨ 🎮 ✨</div>
+          <h1 class="rainbow">Мозгокрут</h1>
+          <p class="subtitle">Тренируй память и логику в четырёх быстрых мини-играх. Пройди уровни, собери достижения и проверь себя в бонусном забеге!</p>
+        </section>
+        <section class="panel">
+          <h2 class="section-title">Выбери уровень</h2>
+          <div class="levels">${levelCards}</div>
+          <div class="bonus-wrap">
+            <button class="secondary" onclick="startRun('bonus',2)">🎁 Запустить бонус</button>
+            <p>Все 4 игры подряд · сложность 2-го уровня</p>
+          </div>
+          <div class="row"><button class="small-btn" onclick="showAchievements()">🏆 Достижения</button></div>
+        </section>`;
+    }
+
+    function startRun(mode, level) {
+      run = { mode, level, index: 0 };
+      startGame();
+    }
+    function startGame() {
+      if (!run) return showHome();
+      if (run.index >= 4) return finishRun();
+      gameData = {};
+      const i = run.index;
+      app.innerHTML = `${top()}<section class="panel">
+        <div class="game-head"><h2>${games[i]}</h2><span class="pill">${run.mode === "bonus" ? "🎁 БОНУС" : `Уровень ${run.level}`}</span></div>
+        <div class="progress"><i style="width:${(i / 4) * 100}%"></i></div>
+        <div id="gameArea"></div>
+      </section>`;
+      [gameSimon, gameNumbers, gameMemory, gameLogic][i]();
+    }
+    function gameWin(message = "Отлично!") {
+      const area = document.getElementById("gameArea");
+      area.innerHTML = `<div class="win"><div class="emoji">🌟</div><h2>${message}</h2><p class="hint">Мини-игра пройдена!</p>
+        <button class="primary" onclick="nextGame()">Дальше →</button></div>`;
+    }
+    function nextGame() {
+      run.index++;
+      startGame();
+    }
+    function finishRun() {
+      data.runs++;
+      if (run.mode === "level") {
+        if (!data.levels.includes(run.level)) data.levels.push(run.level);
+        data.unlocked = Math.max(data.unlocked, Math.min(5, run.level + 1));
+        save();
+        app.innerHTML = `${top()}<section class="panel congrats">
+          <div style="font-size:3.5rem">🎉 🏆 🎉</div>
+          <h1 class="rainbow">Уровень пройден!</h1>
+          <p class="subtitle">Ты справился со всеми четырьмя играми уровня ${run.level}. Отличная работа!</p>          <div class="row"><button class="primary" onclick="showHome()">Продолжить</button></div>
+        </section>`;
+      } else {
+        data.bonus = true;
+        save();
+        app.innerHTML = `${top()}<section class="panel congrats">
+          <div style="font-size:3.7rem;animation:pop .7s ease">🎊 🧠 🎊</div>
+          <h1 class="rainbow">НЕВЕРОЯТНО! ТЫ ПОБЕДИЛ!</h1>
+          <p class="subtitle">Ты прошёл все 4 мини-игры подряд на 2-м уровне. Вот твоя награда:</p>
+          <p style="font-size:1.25rem;font-weight:900;margin-bottom:0">Твой промокод на МЕСЯЦ ВПН</p>
+          <div class="code">(BONUSMETA)</div>
+          <div class="row"><button class="primary" onclick="showHome()">На главную</button></div>
+        </section>`;
+      }
+    }
+
+    function gameSimon() {
+      const area = document.getElementById("gameArea");
+      const length = run.level + 3;
+      gameData.seq = Array.from({length}, () => Math.floor(Math.random() * 6));
+      gameData.input = 0;
+      gameData.lock = true;
+      area.innerHTML = `<p class="instructions">Запомни порядок вспышек и повтори его нажатием на плитки.</p>
+        <div class="simon">${colors.map((c, i) => `<button class="tile" aria-label="Плитка ${i+1}" data-i="${i}" style="background:${c}"></button>`).join("")}</div>
+        <div class="status" id="status">Смотри внимательно…</div>
+        <div class="center"><button class="small-btn" id="replay">↻ Показать ещё раз</button></div>`;
+      const tiles = [...area.querySelectorAll(".tile")];
+      const status = document.getElementById("status");
+      function play() {
+        gameData.lock = true;
+        gameData.input = 0;
+        status.textContent = "Смотри внимательно…";
+        gameData.seq.forEach((n, i) => setTimeout(() => {
+          tiles[n].classList.add("active");
+          setTimeout(() => tiles[n].classList.remove("active"), 330);
+          if (i === gameData.seq.length - 1) setTimeout(() => {
+            gameData.lock = false;
+            status.textContent = "Теперь твоя очередь!";
+          }, 430);
+        }, 550 * i + 250));
+      }
+      tiles.forEach((tile, i) => tile.addEventListener("click", () => {
+        if (gameData.lock) return;
+        if (i !== gameData.seq[gameData.input]) {
+          gameData.lock = true;
+          status.textContent = "Почти! Посмотри последовательность ещё раз.";
+          setTimeout(play, 650);
+          return;
+        }
+        tile.classList.add("active");
+        setTimeout(() => tile.classList.remove("active"), 180);
+        gameData.input++;
+        if (gameData.input === gameData.seq.length) gameWin("Идеальная память!");
+      }));
+      document.getElementById("replay").onclick = () => { if (!gameData.lock) play(); };
+      setTimeout(play, 450);
+    }
+
+    function gameNumbers() {
+      const sets = {
+        1: {seq:[2,4,6,8], answer:10},
+        2: {seq:[3,6,9,12], answer:15},
+        3: {seq:[1,4,9,16], answer:25},
+        4: {seq:[2,6,12,20], answer:30},
+        5: {seq:[2,3,5,8], answer:13}
+      };
+      const puzzle = sets[run.level];
+      const choices = shuffled([puzzle.answer, puzzle.answer + 2, puzzle.answer - 3, puzzle.answer + 5]);
+      const area = document.getElementById("gameArea");
+      area.innerHTML = `<p class="instructions">Найди закономерность и выбери следующее число.</p>
+        <div class="number">${puzzle.seq.join("  ·  ")}  ·  ?</div>
+        <div class="answers">${choices.map(n => `<button class="answer">${n}</button>`).join("")}</div>
+        <div class="status" id="status"></div>`;
+      area.querySelectorAll(".answer").forEach(b => b.onclick = () => {
+        if (+b.textContent === puzzle.answer) gameWin("Шифр разгадан!");
+        else document.getElementById("status").textContent = "Не совсем. Подумай, как меняются числа.";
+      });
+    }
+
+    function gameMemory() {
+      const area = document.getElementById("gameArea");
+      const grid = Array.from({length:9}, () => icons[Math.floor(Math.random() * icons.length)]);
+      const target = Math.floor(Math.random() * 9);
+      gameData.grid = grid;      gameData.target = target;
+      area.innerHTML = `<p class="instructions" id="memInstruction">Запомни, какой значок находится в клетке ${Math.floor(target/3)+1}–${target%3+1}.</p>
+        <div class="memory-grid">${grid.map((icon, i) => `<div class="memory-cell" data-i="${i}">${icon}</div>`).join("")}</div>
+        <div class="status" id="status">Запоминай…</div>`;
+      setTimeout(() => {
+        if (!run || !document.getElementById("gameArea")) return;
+        area.querySelectorAll(".memory-cell").forEach(c => c.classList.add("hidden"));
+        document.getElementById("memInstruction").textContent = "Что было в указанной клетке?";
+        document.getElementById("status").textContent = "Выбери значок:";
+        const correct = grid[target];
+        const choices = shuffled([correct, ...shuffled(icons.filter(x => x !== correct)).slice(0,3)]);
+        const answers = document.createElement("div");
+        answers.className = "answers";
+        answers.innerHTML = choices.map(icon => `<button class="answer">${icon}</button>`).join("");
+        area.appendChild(answers);
+        answers.querySelectorAll("button").forEach(b => b.onclick = () => {
+          if (b.textContent === correct) gameWin("Память на высоте!");
+          else document.getElementById("status").textContent = "Не тот значок — попробуй ещё раз!";
+        });
+      }, Math.max(2200, 4200 - run.level * 350));
+    }
+
+    function gameLogic() {
+      const area = document.getElementById("gameArea");
+      const shift = (run.level - 1) % symbols.length;
+      const values = Array.from({length:9}, (_, i) => symbols[(Math.floor(i/3) + i%3 + shift) % symbols.length]);
+      const answer = values[8];
+      const distractors = shuffled(symbols.filter(s => s !== answer));
+      const choices = shuffled([answer, ...distractors]);
+      area.innerHTML = `<p class="instructions">В каждой строке и колонке фигуры идут по кругу. Какая фигура пропущена?</p>
+        <div class="logic-grid">${values.map((v, i) => `<div class="logic-cell ${i === 8 ? "missing" : ""}">${i === 8 ? "?" : v}</div>`).join("")}</div>
+        <div class="answers">${choices.map(s => `<button class="answer">${s}</button>`).join("")}</div>
+        <div class="status" id="status"></div>`;
+      area.querySelectorAll(".answer").forEach(b => b.onclick = () => {
+        if (b.textContent === answer) gameWin("Логика сработала!");
+        else document.getElementById("status").textContent = "Не подходит. Проверь порядок фигур в строках.";
+      });
+    }
+
+    function shuffled(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function showAchievements() {
+      const achievements = [
+        ["🎯", "Первый шаг", "Пройди любой уровень.", data.levels.length > 0],
+        ["⚡", "На волне", "Пройди два разных уровня.", data.levels.length >= 2],
+        ["🧠", "Мозговой марафон", "Пройди все 5 уровней.", data.levels.length >= 5],
+        ["🎁", "Бонус-мастер", "Заверши бонусный забег на уровне 2.", data.bonus],
+        ["🔁", "Не сдавайся", "Сыграй 5 полных забегов.", data.runs >= 5]
+      ];
+      app.innerHTML = `${top()}<section class="panel">
+        <h2 style="margin-top:0">🏆 Достижения</h2>
+        <div class="achievements">${achievements.map(([icon, title, text, got]) =>
+          `<div class="achievement ${got ? "" : "locked"}"><div class="badge">${got ? icon : "🔒"}</div><div><b>${title}</b><small>${text}</small></div></div>`
+        ).join("")}</div>
+        <div class="row"><button class="primary" onclick="showHome()">Назад</button></div>
+      </section>`;
+    }
+
+    showHome();
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+  </script>
+</body>
+</html>
