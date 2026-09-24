@@ -1,0 +1,19 @@
+{
+  "name": "Мозгокрут — тренируй мозг",
+  "short_name": "Мозгокрут",
+  "description": "Игры на логику и память",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#11152d",
+  "theme_color": "#11152d",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
